@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', function() {
     var votingEndTimeResults = document.getElementById('results').querySelector('p');
 
     // Format the countdown date for display
-    var countDownDate = new Date("Apr 13, 2024 22:35:00").getTime();
+    var countDownDate = new Date("Apr 13, 2024 22:48:00").getTime();
     var endDate = new Date(countDownDate).toLocaleString('en-US', {
         weekday: 'long', 
         year: 'numeric', 
