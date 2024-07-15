@@ -1,0 +1,10 @@
+{
+  "files": ["./**/*.{html,htm,css,js}", "!./node_modules/**/*"],
+  "watchOptions": {
+    "ignored": ["C:/Windows/Temp"]
+  },
+  "server": {
+    "baseDir": ["./src", "./build/contracts"]
+  }
+  
+}

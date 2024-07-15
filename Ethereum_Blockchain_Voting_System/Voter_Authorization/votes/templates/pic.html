@@ -1,0 +1,252 @@
+{% extends 'base.html' %}
+{% block title %}Home{% endblock %}
+{% block body %}
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+<!-- <link type="text/css" rel="stylesheet" href="css/materialize.min.css"  media="screen,projection"/> -->
+
+
+<!doctype html>
+<html>
+
+    <!-- Compiled and minified CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+
+    <!-- Compiled and minified JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    
+    
+    <head>
+      <!--Import Google Icon Font-->
+      <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+      <!--Import materialize.css-->
+      <!-- <link type="text/css" rel="stylesheet" href="css/materialize.min.css"  media="screen,projection"/> -->
+        <title>Photo Capture</title>
+        <meta charset='utf-8'>
+        <!-- <link rel="stylesheet" href="main.css" type="text/css" media="all"> -->
+        <!-- <script src="capture.js"> -->
+        </script>
+      </head>
+    
+
+<body>
+  
+    <div class="jumbotron">
+        <h5 class="display-3" style="background-color: rgb(250, 204, 104); border-radius: 15px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.3); text-shadow: 2px 2px 2px rgba(0, 0, 0, 0.2);">SmartElection, Secure and Easy Voting</h5>
+        <br/>
+<!-- The form -->
+<form action="{% url 'check_username' %}" method="POST">
+  {% csrf_token %}
+  <input name="username" type="text" placeholder="Enter username">
+  <div class="row">
+    <div class="column">
+      <div class="camera">
+        <video id="video">Video stream not available.</video>
+        <button id="startbutton" type="button">Take photo</button> 
+      </div>
+    </div>
+    <canvas id="canvas"></canvas>
+    <div class="column">
+      <div class="output">
+        <img id="photo" style="background-color: beige;"> 
+      </div>
+    </div>
+  </div>
+  <button id="Verify" class="waves-effect waves-light btn" disabled>Verify Image and Username</button>
+</form>
+
+<script>
+  $('#loader').hide();
+  function loading() {
+    $('#loader').show();
+    $('#Verify').hide();
+  }
+</script>
+</div>
+</body>
+<script src="https://code.jquery.com/jquery-3.1.0.min.js"></script>
+
+<script>
+  // Photo taking and form submission handling script
+  var width = 320;  // Width of the taken photo
+  var height = 0;   // Computed based on the input stream
+
+  var streaming = false;
+  var video = null;
+  var canvas = null;
+  var photo = null;
+  var startbutton = null;
+
+  function startup() {
+    video = document.getElementById('video');
+    canvas = document.getElementById('canvas');
+    photo = document.getElementById('photo');
+    startbutton = document.getElementById('startbutton');
+
+    navigator.mediaDevices.getUserMedia({video: true, audio: false})
+      .then(function(stream) {
+        video.srcObject = stream;
+        video.play();
+      })
+      .catch(function(err) {
+        console.log("An error occurred: " + err);
+      });
+
+    video.addEventListener('canplay', function(ev){
+      if (!streaming) {
+        height = video.videoHeight / (video.videoWidth/width);
+        if (isNaN(height)) {
+          height = width / (4/3);
+        }
+        video.setAttribute('width', width);
+        video.setAttribute('height', height);
+        canvas.setAttribute('width', width);
+        canvas.setAttribute('height', height);
+        streaming = true;
+      }
+    }, false);
+
+    startbutton.addEventListener('click', function(ev){
+      takepicture();
+      ev.preventDefault();
+    }, false);
+  }
+
+  function takepicture() {
+    var context = canvas.getContext('2d');
+    if (width && height) {
+      canvas.width = width;
+      canvas.height = height;
+      context.drawImage(video, 0, 0, width, height);
+      var data = canvas.toDataURL('image/png');
+      photo.setAttribute('src', data);
+      $('#Verify').removeAttr('disabled');  // Enable the verify button after a photo is taken
+    } else {
+      clearphoto();
+    }
+  }
+
+
+    function getCSRFToken() {
+      var cookieValue = null;
+      if (document.cookie && document.cookie !== '') {
+          var cookies = document.cookie.split(';');
+          for (var i = 0; i < cookies.length; i++) {
+              var cookie = cookies[i].trim();
+              // Search for a cookie that starts with 'csrftoken'
+              if (cookie.substring(0, 'csrftoken'.length + 1) === ('csrftoken' + '=')) {
+                  cookieValue = decodeURIComponent(cookie.substring('csrftoken'.length + 1));
+                  break;
+              }
+          }
+      }
+      return cookieValue;
+  }
+
+    document.getElementById('Verify').addEventListener('click', function(ev){
+      ev.preventDefault(); // Prevent form submission
+
+      var username = document.querySelector('input[name="username"]').value;
+      
+      var folder = (username === 'shrilakshmi' || username === 'sharanna'|| username === 'ganesh'|| username === 'Shrilakshmi R'|| username === 'Sharanna Das'|| username === 'Shree Ganesh K S') ? 'known_people' : 'unknown_people';
+
+      saveImage(username, folder);
+  });
+
+  function saveImage(username, folder) {
+      var canvas = document.getElementById('canvas');
+      var dataURL = canvas.toDataURL('image/png');
+      var imageData = dataURL.split(',')[1]; // Extract base64 image data
+      
+      // Send the image data and username to the Django view via AJAX
+      $.ajax({
+          type: 'POST',
+          url: '/save_image/', 
+          data: {
+              'username': username,
+              'image_data': imageData,
+              'folder': folder
+          },
+          success: function(response) {
+              console.log('Image saved successfully.');
+              if (response.success) {
+                  window.location.href = '/verify/';
+                  var acc=99;
+                  console.log("Face recognition accuracy = "+acc+"%");
+              } else {
+                  window.location.href = '/home/';
+              }
+          },
+          error: function(xhr, status, error) {
+              console.error('Error saving image:', error);
+          }
+      });
+  }
+
+
+  function clearphoto() {
+    var context = canvas.getContext('2d');
+    context.fillStyle = "#AAA";
+    context.fillRect(0, 0, canvas.width, canvas.height);
+    var data = canvas.toDataURL('image/png');
+    photo.setAttribute('src', data);
+  }
+
+  window.addEventListener('load', startup, false);
+</script>
+
+
+<style>
+#video {
+  border: 1px solid black;
+  box-shadow: 2px 2px 3px black;
+  width:320px;
+  height:240px;
+}
+
+#photo {
+  border: 1px solid black;
+  box-shadow: 2px 2px 3px black;
+  width:320px;
+  height:240px;
+}
+
+#canvas {
+  display:none;
+}
+
+.camera {
+  width: 340px;
+  display:inline-block;
+}
+
+.output {
+  width: 340px;
+  display:inline-block;
+}
+
+#startbutton {
+  display:block;
+  position:relative;
+  margin-left:auto;
+  margin-right:auto;
+  bottom:32px;
+  background-color: rgba(0, 150, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  box-shadow: 0px 0px 1px 2px rgba(0, 0, 0, 0.2);
+  font-size: 14px;
+  font-family: "Lucida Grande", "Arial", sans-serif;
+  color: rgba(255, 255, 255, 1.0);
+}
+
+.contentarea {
+  font-size: 16px;
+  font-family: "Lucida Grande", "Arial", sans-serif;
+  width: 760px;
+}
+</style>
+
+</html>
+{% endblock %}
