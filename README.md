@@ -7,23 +7,25 @@ There are mainly 2 modules:
     1) Authentication
     2) Voting
 
+
 The three high level processes carried out by the system are:
     1) Two Step Verification:
         a) Facial recognition of the voter
         b) Verify Blockchain address
     2) Launching a new ballot (Cast Vote using Metamask wallet and perform transaction)
     3) Instantaneous display of election results
+
     
    ![image](https://github.com/user-attachments/assets/71eef31b-cf1d-42c6-af08-678d79347ae7)
 
 The system is built with the assumption that the voter has submitted all the necessary documents such as his identification card (e.g: Aadhaar), at least two days prior to the election day.
 
 Technological Stack Used:
-  Python Django Web Framework (Authentication website)
-  Ethereum Sepolia Test Network (Infura)
-  Ganache CLI (for testing)
-  Truffle Suite
-  Metamask wallet
+  Python Django Web Framework (Authentication website), 
+  Ethereum Sepolia Test Network (Infura), 
+  Ganache CLI (for testing), 
+  Truffle Suite, 
+  Metamask wallet, 
   React (Voting Ballot) and Node.js
 
 
